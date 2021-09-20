@@ -1,0 +1,37 @@
+## ### loading the 'Test-Set.csv'file and saving it as'temp-sales data'
+@files:loadfile filename= 'Test-Set.csv'
+    --> @dm:save name='temp-sales data'
+
+## ### recalling 'temp-sales data' file sorting the MRP column contents in ascending order and saving it as 'temp-sales ordered data'
+--> @c:new-block
+    --> @dm:recall name ='temp-sales data'
+    --> @dm:sort columns = 'MRP' & order = 'Ascending'
+    --> *dm:filter * get ProductID,ProductType, MRP,OutletType
+    --> @dm:save name='temp-sales ordered data'
+
+## ### recalling 'temp-sales ordered data', using match function on the data and saving it as 'temp-sales FDids data'
+--> @c:new-block
+    --> @dm:recall name ='temp-sales ordered data'
+    --> @dm:map func = 'match' & from = 'ProductID' & to = 'FDids' & expr = "FD\w+"
+    --> *dm:filter * get FDids, ProductType,MRP
+    --> @dm:save name='temp-sales FDids data'
+
+## ###recalling 'temp-sales FDids data',enriching the outletid column from  'temp-sales data' and saving it as 'temp-sales enriched data'
+--> @c:new-block
+    --> @dm:recall name ='temp-sales FDids data'
+    --> @dm:enrich dict = 'temp-sales data' & src_key_cols = 'ProductType' & dict_key_cols = 'ProductType' & enrich_cols = 'OutletID'
+    --> @dm:save name='temp-sales enriched data'
+
+## ### recalling 'temp-sales data' using replace and upper function on a particular data and saving it as 'temp-sales data'
+--> @c:new-block
+    --> @dm:recall name ='temp-sales data'
+    --> @dm:map func = 'replace' & oldvalue = 'LF' & newvalue = 'Low Fat' & attr = 'FatContent'
+    --> @dm:map attr = "ProductType" & func = "upper"
+    --> @dm:save name='temp-sales data'
+
+## ### recalling 'temp-sales data' merging columns, 'FatContent ,ProductType into 'PrdctType-FatContent' and saving it as 'temp-sales merged data'
+--> @c:new-block
+    --> @dm:recall name ='temp-sales data'
+    --> @dm:mergecolumns include = 'FatContent|ProductType' & to = 'PrdctType-FatContent'
+    --> @dm:save name='temp-sales merged data'
+
